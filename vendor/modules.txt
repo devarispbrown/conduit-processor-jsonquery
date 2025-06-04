@@ -35,11 +35,11 @@ github.com/goccy/go-json/internal/runtime
 ## explicit; go 1.23.0
 github.com/hamba/avro/v2
 github.com/hamba/avro/v2/pkg/crc64
-# github.com/itchyny/gojq v0.12.14
-## explicit; go 1.19
+# github.com/itchyny/gojq v0.12.17
+## explicit; go 1.21
 github.com/itchyny/gojq
-# github.com/itchyny/timefmt-go v0.1.5
-## explicit; go 1.17
+# github.com/itchyny/timefmt-go v0.1.6
+## explicit; go 1.20
 github.com/itchyny/timefmt-go
 # github.com/jmespath/go-jmespath v0.4.0
 ## explicit; go 1.14
