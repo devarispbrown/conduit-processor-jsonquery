@@ -5,11 +5,15 @@ go 1.24.2
 require (
 	github.com/conduitio/conduit-commons v0.5.4
 	github.com/conduitio/conduit-processor-sdk v0.4.4
+	github.com/itchyny/gojq v0.12.14
+	github.com/jmespath/go-jmespath v0.4.0
+	github.com/matryer/is v1.4.1
 )
 
 require (
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/hamba/avro/v2 v2.28.0 // indirect
+	github.com/itchyny/timefmt-go v0.1.5 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

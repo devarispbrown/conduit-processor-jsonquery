@@ -1,27 +1,42 @@
-VERSION=$(shell git describe --tags --dirty --always)
+.PHONY: build test run clean lint fmt
 
-.PHONY: build
+# Build variables
+BINARY_NAME=processor-jsonquery
+GO=go
+GOFLAGS=-v
+LDFLAGS=-ldflags="-s -w"
+
+# Default target
+all: build
+
+# Build the processor plugin
 build:
-	GOARCH=wasm GOOS=wasip1 go build -o conduit-processor-jsonquery.wasm cmd/processor/main.go
+	@echo "Building json.query processor..."
+	$(GO) build $(GOFLAGS) $(LDFLAGS) -o $(BINARY_NAME) .
 
-.PHONY: test
+# Run all tests
 test:
-	go test $(GOTEST_FLAGS) -race ./...
+	@echo "Running tests..."
+	$(GO) test -v -race -cover ./...
 
-.PHONY: generate
-generate:
-	go generate ./...
+# Run the processor locally (for debugging)
+run: build
+	@echo "Running json.query processor..."
+	./$(BINARY_NAME)
 
-.PHONY: install-tools
-install-tools:
-	@echo Installing tools from tools/go.mod
-	@go list -modfile=tools/go.mod tool | xargs -I % go list -modfile=tools/go.mod -f "%@{{.Module.Version}}" % | xargs -tI % go install %
-	@go mod tidy
+# Clean build artifacts
+clean:
+	@echo "Cleaning build artifacts..."
+	rm -f $(BINARY_NAME)
+	$(GO) clean
 
-.PHONY: fmt
-fmt:
-	gofumpt -l -w .
-
-.PHONY: lint
+# Run linter
 lint:
-	golangci-lint run
+	@echo "Running linter..."
+	golangci-lint run ./...
+
+# Format code
+fmt:
+	@echo "Formatting code..."
+	$(GO) fmt ./...
+	goimports -w .

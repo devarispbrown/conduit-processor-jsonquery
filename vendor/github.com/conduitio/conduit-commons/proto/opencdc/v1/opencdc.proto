@@ -1,0 +1,136 @@
+syntax = "proto3";
+
+package opencdc.v1;
+
+import "google/protobuf/descriptor.proto";
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/conduitio/conduit-commons/proto/opencdc/v1";
+option (metadata_collection) = "opencdc.collection";
+option (metadata_created_at) = "opencdc.createdAt";
+option (metadata_file_chunk_count) = "opencdc.file.chunk.count";
+option (metadata_file_chunk_index) = "opencdc.file.chunk.index";
+option (metadata_file_chunked) = "opencdc.file.chunked";
+option (metadata_file_hash) = "opencdc.file.hash";
+option (metadata_file_name) = "opencdc.file.name";
+option (metadata_file_size) = "opencdc.file.size";
+option (metadata_key_schema_subject) = "opencdc.key.schema.subject";
+option (metadata_key_schema_version) = "opencdc.key.schema.version";
+option (metadata_payload_schema_subject) = "opencdc.payload.schema.subject";
+option (metadata_payload_schema_version) = "opencdc.payload.schema.version";
+option (metadata_read_at) = "opencdc.readAt";
+option (metadata_version) = "opencdc.version";
+option (opencdc_version) = "v1";
+
+// We are (ab)using custom file options to define constants.
+// See https://github.com/protocolbuffers/protobuf/issues/3520#issuecomment-323613839
+extend google.protobuf.FileOptions {
+  // OpenCDC version is a constant that should be used as the value in the
+  // metadata field opencdc.version. It ensures the OpenCDC format version can be
+  // easily identified in case the record gets marshaled into a different untyped
+  // format (e.g. JSON).
+  string opencdc_version = 9999;
+
+  // Metadata field "opencdc.version" contains the version of the OpenCDC format
+  // (e.g. "v1"). This field exists to ensure the OpenCDC format version can be
+  // easily identified in case the record gets marshaled into a different
+  // untyped format (e.g. JSON).
+  string metadata_version = 10000;
+  // Metadata field "opencdc.createdAt" can contain the time when the record was
+  // created in the 3rd party system. The expected format is a unix timestamp in
+  // nanoseconds.
+  string metadata_created_at = 10001;
+  // Metadata field "opencdc.readAt" can contain the time when the record was
+  // read from the 3rd party system. The expected format is a unix timestamp in
+  // nanoseconds.
+  string metadata_read_at = 10002;
+  // Metadata field "opencdc.collection" can contain the name of the collection
+  // where the record originated from and/or where it should be stored.
+  string metadata_collection = 10003;
+  // Metadata field "opencdc.key.schema.subject" contains the subject of the schema of
+  // the record's .Key field.
+  string metadata_key_schema_subject = 10004;
+  // Metadata field "opencdc.key.schema.version" contains the version of the schema of
+  // the record's .Key field.
+  string metadata_key_schema_version = 10005;
+  // Metadata field "opencdc.payload.schema.subject" contains the subject of the schema of
+  // the record's .Payload fields.
+  string metadata_payload_schema_subject = 10006;
+  // Metadata field "opencdc.payload.schema.version" contains the version of the schema of
+  // the record's .Payload fields.
+  string metadata_payload_schema_version = 10007;
+
+  // Metadata field "opencdc.file.name" contains the file name of the file record.
+  string metadata_file_name = 10008;
+  // Metadata field "opencdc.file.size" contains the file size of the file record.
+  string metadata_file_size = 10009;
+  // Metadata field "opencdc.file.hash" contains the file content hash of the file record.
+  string metadata_file_hash = 10010;
+  // Metadata field "opencdc.file.chunked" contains if the record is chunked record of a file.
+  string metadata_file_chunked = 10011;
+  // Metadata field "opencdc.file.chunk.index" contains the chunk index of the file record.
+  string metadata_file_chunk_index = 10012;
+  // Metadata field "opencdc.file.chunk.count" contains the total number of chunks of the file record.
+  string metadata_file_chunk_count = 10013;
+}
+
+// Operation defines what triggered the creation of a record.
+enum Operation {
+  OPERATION_UNSPECIFIED = 0;
+  // Records with operation create contain data of a newly created entity.
+  OPERATION_CREATE = 1;
+  // Records with operation update contain data of an updated entity.
+  OPERATION_UPDATE = 2;
+  // Records with operation delete contain data of a deleted entity.
+  OPERATION_DELETE = 3;
+  // Records with operation snapshot contain data of a previously existing
+  // entity, fetched as part of a snapshot.
+  OPERATION_SNAPSHOT = 4;
+}
+
+// Record contains data about a single change event related to a single entity.
+message Record {
+  // Position uniquely identifies the record.
+  bytes position = 1;
+
+  // Operation defines what triggered the creation of a record. There are four
+  // possibilities: create, update, delete or snapshot. The first three
+  // operations are encountered during normal CDC operation, while "snapshot" is
+  // meant to represent records during an initial load. Depending on the
+  // operation, the record will contain either the payload before the change,
+  // after the change, or both (see field payload).
+  Operation operation = 2;
+
+  // Metadata contains optional information related to the record. Although the
+  // map can contain arbitrary keys, the standard provides a set of standard
+  // metadata fields (see options prefixed with metadata_*).
+  map<string, string> metadata = 3;
+
+  // Key represents a value that should identify the entity (e.g. database row).
+  Data key = 4;
+  // Payload holds the payload change (data before and after the operation
+  // occurred).
+  Change payload = 5;
+}
+
+// Change represents the data before and after the operation occurred.
+message Change {
+  // Before contains the data before the operation occurred. This field is
+  // optional and should only be populated for operations "update" and "delete"
+  // (if the system supports fetching the data before the operation).
+  Data before = 1;
+  // After contains the data after the operation occurred. This field should be
+  // populated for all operations except "delete".
+  Data after = 2;
+}
+
+// Data is used to represent the record key and payload. It can be either raw
+// data (byte array) or structured data (struct).
+message Data {
+  oneof data {
+    // Raw data contains unstructured data in form of a byte array.
+    bytes raw_data = 1;
+    // Structured data contains data in form of a struct with fields.
+    google.protobuf.Struct structured_data = 2;
+  }
+}

@@ -1,29 +1,31 @@
-### Go ###
-# Binaries for programs and plugins
+# Binaries
+processor-jsonquery
 *.exe
-*.exe~
 *.dll
 *.so
 *.dylib
-*.wasm
-/vendor
 
 # Test binary, built with `go test -c`
 *.test
 
-# Output of the go coverage tool, specifically when used with LiteIDE
+# Output of the go coverage tool
 *.out
+coverage.html
 
-### Intellij ###
-.idea
+# Go workspace file
+go.work
 
-### VisualStudioCode ###
-.vscode
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
 
-# Binary, built with `make build`
-/conduit-processor-jsonquery.wasm
-
-### OS ###
+# OS files
 .DS_Store
+Thumbs.db
 
-
+# Build artifacts
+dist/
+build/
