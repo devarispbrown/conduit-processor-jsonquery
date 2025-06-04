@@ -4,9 +4,9 @@ package main
 
 import (
 	sdk "github.com/conduitio/conduit-processor-sdk"
-	processorname "github.com/conduitio/conduit-processor-processorname"
+	jsonquery "github.com/devarispbrown/conduit-processor-jsonquery"
 )
 
 func main() {
-	sdk.Run(processorname.NewProcessor())
+	sdk.Run(jsonquery.NewProcessor())
 }
