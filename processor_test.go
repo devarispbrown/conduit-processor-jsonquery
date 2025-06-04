@@ -2,6 +2,7 @@ package jsonquery
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/conduitio/conduit-commons/config"
@@ -145,7 +146,18 @@ func TestProcessor_Process_JQ(t *testing.T) {
 	is.Equal(len(results), 1)
 
 	processed := results[0].(sdk.SingleRecord)
-	is.Equal(processed.Payload.After.(opencdc.StructuredData), 4.25)
+	
+	// For scalar results like numbers, the processor returns RawData
+	rawData, ok := processed.Payload.After.(opencdc.RawData)
+	is.True(ok) // Verify we got RawData
+	
+	// Parse the JSON number
+	var parsedValue float64
+	err = json.Unmarshal(rawData, &parsedValue)
+	is.NoErr(err)
+	
+	// Verify the numeric value
+	is.Equal(parsedValue, 4.25)
 }
 
 func TestProcessor_Process_RawJSON(t *testing.T) {
@@ -171,7 +183,18 @@ func TestProcessor_Process_RawJSON(t *testing.T) {
 	is.Equal(len(results), 1)
 
 	processed := results[0].(sdk.SingleRecord)
-	is.Equal(processed.Payload.After.(opencdc.StructuredData), "active")
+	
+	// For scalar results like strings, the processor returns RawData
+	rawData, ok := processed.Payload.After.(opencdc.RawData)
+	is.True(ok) // Verify we got RawData
+	
+	// Parse the JSON string
+	var parsedValue string
+	err = json.Unmarshal(rawData, &parsedValue)
+	is.NoErr(err)
+	
+	// Verify the string value
+	is.Equal(parsedValue, "active")
 }
 
 func TestProcessor_Process_InvalidJSON(t *testing.T) {
