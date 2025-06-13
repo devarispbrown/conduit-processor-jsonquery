@@ -1,4 +1,4 @@
-# github.com/conduitio/conduit-commons v0.5.4
+# github.com/conduitio/conduit-commons v0.6.0
 ## explicit; go 1.24.2
 github.com/conduitio/conduit-commons/config
 github.com/conduitio/conduit-commons/lang
@@ -9,7 +9,7 @@ github.com/conduitio/conduit-commons/proto/schema/v1
 github.com/conduitio/conduit-commons/rabin
 github.com/conduitio/conduit-commons/schema
 github.com/conduitio/conduit-commons/schema/avro
-# github.com/conduitio/conduit-processor-sdk v0.4.4
+# github.com/conduitio/conduit-processor-sdk v0.5.0
 ## explicit; go 1.24.2
 github.com/conduitio/conduit-processor-sdk
 github.com/conduitio/conduit-processor-sdk/internal/reference
