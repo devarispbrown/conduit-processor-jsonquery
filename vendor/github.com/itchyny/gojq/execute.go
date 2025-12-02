@@ -59,14 +59,16 @@ loop:
 			}
 			n := code.v.(int)
 			m := make(map[string]any, n)
-			for i := 0; i < n; i++ {
+			for range n {
 				v, k := env.pop(), env.pop()
 				s, ok := k.(string)
 				if !ok {
 					err = &objectKeyNotStringError{k}
 					break loop
 				}
-				m[s] = v
+				if _, ok := m[s]; !ok {
+					m[s] = v
+				}
 			}
 			env.push(m)
 		case opappend:
@@ -90,7 +92,7 @@ loop:
 				case *tryEndError:
 					err = e.err
 					break loop
-				case *breakError, *haltError:
+				case *breakError, *HaltError:
 					break loop
 				case ValueError:
 					env.pop()
@@ -178,7 +180,7 @@ loop:
 			case [3]any:
 				argcnt := v[1].(int)
 				x, args := env.pop(), env.args[:argcnt]
-				for i := 0; i < argcnt; i++ {
+				for i := range argcnt {
 					args[i] = env.pop()
 				}
 				w := v[0].(func(any, []any) any)(x, args)
@@ -236,8 +238,7 @@ loop:
 					callpc, saveindex = env.popscope()
 				}
 			} else {
-				saveindex, _ = env.scopes.save()
-				env.scopes.index = index
+				saveindex = env.scopes.index
 			}
 			if outerindex = index; outerindex >= 0 {
 				if s := env.scopes.data[outerindex].value; s.id == xs[0] {
@@ -375,7 +376,7 @@ func (env *env) popscope() (int, int) {
 }
 
 func (env *env) pushfork(pc int) {
-	f := fork{pc: pc, expdepth: env.expdepth}
+	f := fork{pc: pc, offset: env.offset, expdepth: env.expdepth}
 	f.stackindex, f.stacklimit = env.stack.save()
 	f.scopeindex, f.scopelimit = env.scopes.save()
 	f.pathindex, f.pathlimit = env.paths.save()
@@ -386,7 +387,8 @@ func (env *env) pushfork(pc int) {
 func (env *env) popfork() int {
 	f := env.forks[len(env.forks)-1]
 	env.debugForks(f.pc, "<<<")
-	env.forks, env.expdepth = env.forks[:len(env.forks)-1], f.expdepth
+	env.forks, env.offset, env.expdepth =
+		env.forks[:len(env.forks)-1], f.offset, f.expdepth
 	env.stack.restore(f.stackindex, f.stacklimit)
 	env.scopes.restore(f.scopeindex, f.scopelimit)
 	env.paths.restore(f.pathindex, f.pathlimit)

@@ -51,6 +51,15 @@ func (err *arrayIndexTooLargeError) Error() string {
 	return "array index too large: " + Preview(err.v)
 }
 
+type repeatStringTooLargeError struct {
+	s string
+	n float64
+}
+
+func (err *repeatStringTooLargeError) Error() string {
+	return "repeat string result too large: " + Preview(err.s) + " * " + Preview(err.n)
+}
+
 type objectKeyNotStringError struct {
 	v any
 }
@@ -85,7 +94,7 @@ func (err *expectedStartEndError) Error() string {
 
 type lengthMismatchError struct{}
 
-func (err *lengthMismatchError) Error() string {
+func (*lengthMismatchError) Error() string {
 	return "length mismatch"
 }
 
@@ -180,26 +189,28 @@ func (err *exitCodeError) ExitCode() int {
 	return err.code
 }
 
-type haltError exitCodeError
+// HaltError is an error emitted by halt and halt_error functions.
+// It implements [ValueError], and if the value is nil, discard the error
+// and stop the iteration. Consider a query like "1, halt, 2";
+// the first value is 1, and the second value is a HaltError with nil value.
+// You might think the iterator should not emit an error this case, but it
+// should so that we can recognize the halt error to stop the outer loop
+// of iterating input values; echo 1 2 3 | gojq "., halt".
+type HaltError exitCodeError
 
-func (err *haltError) Error() string {
-	return (*exitCodeError)(err).Error()
+func (err *HaltError) Error() string {
+	return "halt " + (*exitCodeError)(err).Error()
 }
 
-func (err *haltError) IsEmptyError() bool {
-	return err.value == nil
-}
-
-func (err *haltError) Value() any {
+// Value returns the value of the error. This implements [ValueError],
+// but halt error is not catchable by try-catch.
+func (err *HaltError) Value() any {
 	return (*exitCodeError)(err).Value()
 }
 
-func (err *haltError) ExitCode() int {
+// ExitCode returns the exit code of the error.
+func (err *HaltError) ExitCode() int {
 	return (*exitCodeError)(err).ExitCode()
-}
-
-func (err *haltError) IsHaltError() bool {
-	return true
 }
 
 type flattenDepthError struct {
@@ -220,7 +231,7 @@ func (err *joinTypeError) Error() string {
 
 type timeArrayError struct{}
 
-func (err *timeArrayError) Error() string {
+func (*timeArrayError) Error() string {
 	return "expected an array of 8 numbers"
 }
 
@@ -277,7 +288,7 @@ func (err *formatRowError) Error() string {
 
 type tooManyVariableValuesError struct{}
 
-func (err *tooManyVariableValuesError) Error() string {
+func (*tooManyVariableValuesError) Error() string {
 	return "too many variable values provided"
 }
 
@@ -314,7 +325,7 @@ func (err *breakError) Error() string {
 	return "label not defined: " + err.n
 }
 
-func (err *breakError) ExitCode() int {
+func (*breakError) ExitCode() int {
 	return 3
 }
 
